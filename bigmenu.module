@@ -1,0 +1,112 @@
+<?php
+/**
+ * @file alternative to core menu management
+ * 
+ * Needed when menus get to big to load on one page.
+ * 
+ * CONFLICTS WITH tiny_menu. Appropriately enough.
+ * 
+ * ISSUE:
+ * I don't know how to stop menu_from_alter from running each time (and loading
+ * all the options) even though I'm planning to override it. There could be a
+ * performance issue there
+ */
+ 
+/**
+ * hook_menu()
+ */
+function bigmenu_menu() {
+  $items['admin/build/bigmenu-customize/%menu'] = array(
+    'title' => 'Customize menu',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('bigmenu_overview_form', 3),
+    'title callback' => 'menu_overview_title',
+    'title arguments' => array(3),
+    'access arguments' => array('administer big menu'),
+    'type' => MENU_CALLBACK,
+    'file' => 'bigmenu.admin.inc',
+  );
+  // Edit just a part of a menu. Arg 5 is the parent menu link id
+  $items['admin/build/bigmenu-customize/%menu/subform/%menu_link'] = array(
+    'title' => 'Edit a slice of a menu',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('bigmenu_slice_form', 3, 5),
+    'title callback' => 'bigmenu_parent_title',
+    'title arguments' => array(5),
+    'access arguments' => array('administer big menu'),
+    'type' => MENU_CALLBACK,
+    'file' => 'bigmenu.admin.inc',
+  );
+  // Same as abve, but triggers an equivalent json response
+  $items['admin/build/bigmenu-customize/%menu/subform/%menu_link/js'] = array(
+    'page callback' => 'bigmenu_slice_form_js',
+    'page arguments' => array(3, 5),
+    'access arguments' => array('administer big menu'),
+    'type' => MENU_CALLBACK,
+    'file' => 'bigmenu.admin.inc',
+  );
+  $items['admin/build/bigmenu/alias_autocomplete'] = array(
+    'type' => MENU_CALLBACK,
+    'access arguments' => array('administer big menu'),
+    'page callback' => 'bigmenu_alias_autocomplete',
+    'file' => 'bigmenu.admin.inc',
+  );
+  
+  return $items;
+}
+
+/**
+ * hook_menu_alter()
+ * 
+ * Take over core menu
+ * TODO - should be an admin toggle for this setting
+ */
+function bigmenu_menu_alter(&$items) {
+  $items['admin/build/menu-customize/%menu']['page arguments'] = array('bigmenu_overview_form', 3);
+  $items['admin/build/menu-customize/%menu']['file'] = 'bigmenu.admin.inc';
+  $items['admin/build/menu-customize/%menu']['file path'] = drupal_get_path('module', 'bigmenu');
+
+#dpm($items['admin/build/menu-customize/%menu']);
+}
+
+/**
+ * hook_form_alter()
+ * 
+ * Add our own option into the menu management box
+ */
+function bigmenu_form_alter(&$form, $form_state, $form_id) {
+  if (isset($form['#node']) && $form['#node']->type .'_node_form' == $form_id) {
+    $item = $form['#node']->menu;
+    if ($item['mlid']) {
+      // There is an existing link.
+    }
+
+    $form['menu']['bigmenu_url'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Menu parent path'),
+      '#description' => t('Enter just the URL or path of your desired menu parent.'),
+      '#autocomplete_path' => 'admin/build/bigmenu/alias_autocomplete',  
+    );
+  }
+}
+
+/**
+ * Implemenation of hook_theme().
+ */
+function bigmenu_theme() {
+  return array(
+    'bigmenu_overview_form' => array(
+      'file' => 'bigmenu.admin.inc',
+      'arguments' => array('form' => NULL),
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_enable
+ * 
+ * Ensure we load after the usual core
+ */
+function bigmenu_enable() {
+  db_query('UPDATE {system} SET weight = 10 WHERE name = "bigmenu"');
+}
