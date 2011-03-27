@@ -179,9 +179,10 @@ function _bigmenu_overview_tree_form($tree, $depth = 0) {
       }
       else {
         // 'below' contains both immediate children and something else
-        $text = '<span class="bigmenu-expand">+</span> <em>' . t('%count Children of : ' , array('%count' => count($data['below']))) . $item['title'] . '</em>';
+        $text = '<span class="bigmenu-toggle">+</span> <span class="count" title="!tooltip">' . t('Show children (%count)' , array('%count' => count($data['below']), '!tooltip' => t('Click to expand and show child items'))) . '</span>';
         $indicator = l($text, "admin/build/bigmenu-customize/{$item['menu_name']}/subform/{$item['mlid']}", array('html' => TRUE, attributes => array('class' => 'bigmenu-childindictor')));
         $form[$mlid]['title']['#value'] .= '<br/>' . $indicator;
+        $form[$mlid]['#attributes']['class'] = 'bigmenu-collapsed';
 
       }
     }
@@ -238,6 +239,7 @@ function bigmenu_alias_autocomplete() {
  */
 function theme_bigmenu_overview_form($form) {
   drupal_add_js(drupal_get_path('module', 'bigmenu') . '/bigmenu.js');
+  drupal_add_css(drupal_get_path('module', 'bigmenu') . '/bigmenu.css');
   return theme('menu_overview_form', $form);
 }
 
@@ -246,5 +248,7 @@ function theme_bigmenu_overview_form($form) {
  * ? should just use #submit?
  */
 function bigmenu_overview_form_submit($form, &$form_state) {
+  dpm("submitting " . __FUNCTION__);
+  dpm(get_defined_vars());
   return menu_overview_form_submit($form, $form_state);
 }

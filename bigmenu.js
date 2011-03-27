@@ -5,60 +5,65 @@
  */
  
 Drupal.behaviors.bigmenu = function(context) {
-  // add click actions to all the child indicators
-  $('form#bigmenu-overview-form .bigmenu-childindictor')
-    .addClass('clickable')
+  
+  // Add click actions to all the child indicators
+  // The bigmenu-processed class will mark that we don't want to attach this behavior twice.
+  $('form#bigmenu-overview-form .bigmenu-childindictor').not('.bigmenu-processed')
+    .addClass('bigmenu-processed')
     .click(
       function(event){
         // Don't let the normal href_ click happen
         event.stopPropagation();
 
         // jquery 1.3+
-        // var parentRow = $(this).closest('tr');
         var parentRow = $(this).parents('tr').get();
+        
+        // Find the mlid of the cell we are in.
+        var mlid = $('.menu-mlid', parentRow).val();
 
         // Prevent double-clicks
         if ($(parentRow).hasClass("bigmenu-processing")) {
           return;
         }
-        $(parentRow).addClass("bigmenu-processing")
+        // Set throbber, and indicate we are busy
+        $(parentRow).addClass("bigmenu-processing");
         
+        // We either expand or contract, depending on current status
+        if ($(parentRow).hasClass("bigmenu-collapsed")) {
+          // Fetch submenu and expand
 
-        // set thobber
-        $('.bigmenu-expand', $(this))
-          .addClass("ahah-progress")
-          .html('<div class="throbber">&nbsp;</div>');
-
-          // Find the mlid of the cell we are in ...or not. 
           // This clicked item has the href call we need to make built in
           // just add 'js' to the end
           var url = $(this).attr('href') + '/js';
 
           // Make an ajax call for the child items.
-
           $.ajax({
             dataType: 'json',
             url: url,
             success: function(data, textStatus, XMLHttpRequest) {
-              // remove thobber        
-              $('.bigmenu-childindictor', $(parentRow)).remove();
-              $(parentRow).removeClass('bigmenu-processing')
-                .addClass('bigmenu-processed')
-
               if (data.status) {
+
                 // Shift the rows into this form.
-                
                 var new_form = $(data.data);
 
-                // add each tr in the retrieved form  after the parent row
+                // Add each tr in the retrieved form  after the parent row
+                // Tag the added rows so we can find and collapse them later
+                var previousRow = parentRow;
                 $('tr', new_form).each(function(index) {
                     if ($('th', this).length == 0) {
-                      $(parentRow).after(this);
-                      // TODO - an animation of some sort
-                      // Don't want to reverse the order, so adjust the parentrow pointer
-                      parentRow = this
+                      $(this).addClass('childOf-' + mlid)
+                        .css('opacity', 0.2)
+                      //.fadeTo(0, 0.5).css('opacity', 0.1)
+                      $(previousRow).after(this)
+                      
+                      // TODO - an animation of some sort - tr,td cannot set height however
+                      previousRow = this
                     }
                 });
+                $('.childOf-' + mlid)
+                  .animate({opacity:'1'}, 1500)
+                  // don't use fadeIn because tht acts odd on table elements
+                
                 // Attach any required behaviors to the table
                 // thus, the further child expanders, and the tabledrag again.
                 // tabledrag doesn't like running twice, so we have to remove some evidence
@@ -66,20 +71,42 @@ Drupal.behaviors.bigmenu = function(context) {
                 $('#menu-overview .tabledrag-handle').remove();
                 
                 Drupal.attachBehaviors();
+
+                // Indicate we are expanded now
+                $(parentRow)
+                  .removeClass('bigmenu-collapsed')
+                  .addClass('bigmenu-expanded')
               }
               else {
                 // Failure...
                 alert(Drupal.t('AJAX error fetching submenu.'));
-                $('.bigmenu-childindictor', $(parentRow)).remove();
+                //$('.bigmenu-childindictor', $(parentRow)).remove();
               }
+              
+              // Finished processing, whether success or failure
+              $(parentRow)
+                .removeClass('bigmenu-processing')
             },
             error: function(XMLHttpRequest, textStatus, errorThrown) {
               // Failure...
-              $('.bigmenu-childindictor', $(parentRow)).remove();
               alert(Drupal.t('Error fetching submenu: @error', { '@error': textStatus }));
             }
           });
-        return false;
-      }
+	      }
+	      else {
+          // This item was already expanded, so a click means it should close.
+          // That means hide the kids
+          $('.childOf-' + mlid).remove();
+          
+          // Indicate we are closed now
+          $(parentRow)
+            .removeClass('bigmenu-processing')
+            .removeClass('bigmenu-expanded')
+            .addClass('bigmenu-collapsed')
+        }
+	          
+	      return false;
+	    }
     );
+    
 }
