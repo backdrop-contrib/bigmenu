@@ -6,13 +6,13 @@
  * 
  * CONFLICTS WITH tiny_menu. Appropriately enough.
  * 
- * ISSUE:
- * I don't know how to stop menu_from_alter from running each time (and loading
- * all the options) even though I'm planning to override it. There could be a
- * performance issue there
+ * @author Dan (dman) Morrison dan@coders.co.nz
+ * @version 2011
  */
  
 /**
+ * Declare admin links and AJAX callbacks
+ * 
  * hook_menu()
  */
 function bigmenu_menu() {
@@ -22,7 +22,7 @@ function bigmenu_menu() {
     'page arguments' => array('bigmenu_overview_form', 3),
     'title callback' => 'menu_overview_title',
     'title arguments' => array(3),
-    'access arguments' => array('administer big menu'),
+    'access arguments' => array('administer menu'),
     'type' => MENU_CALLBACK,
     'file' => 'bigmenu.admin.inc',
   );
@@ -33,21 +33,21 @@ function bigmenu_menu() {
     'page arguments' => array('bigmenu_slice_form', 3, 5),
     'title callback' => 'bigmenu_parent_title',
     'title arguments' => array(5),
-    'access arguments' => array('administer big menu'),
+    'access arguments' => array('administer menu'),
     'type' => MENU_CALLBACK,
     'file' => 'bigmenu.admin.inc',
   );
-  // Same as abve, but triggers an equivalent json response
+  // Same as above, but triggers an equivalent json response
   $items['admin/build/bigmenu-customize/%menu/subform/%menu_link/js'] = array(
     'page callback' => 'bigmenu_slice_form_js',
     'page arguments' => array(3, 5),
-    'access arguments' => array('administer big menu'),
+    'access arguments' => array('administer menu'),
     'type' => MENU_CALLBACK,
     'file' => 'bigmenu.admin.inc',
   );
   $items['admin/build/bigmenu/alias_autocomplete'] = array(
     'type' => MENU_CALLBACK,
-    'access arguments' => array('administer big menu'),
+    'access arguments' => array('administer menu'),
     'page callback' => 'bigmenu_alias_autocomplete',
     'file' => 'bigmenu.admin.inc',
   );
@@ -56,9 +56,10 @@ function bigmenu_menu() {
 }
 
 /**
+ * Take over core menu admin page
+ * 
  * hook_menu_alter()
  * 
- * Take over core menu
  * TODO - should be an admin toggle for this setting
  */
 function bigmenu_menu_alter(&$items) {
@@ -66,13 +67,19 @@ function bigmenu_menu_alter(&$items) {
   $items['admin/build/menu-customize/%menu']['file'] = 'bigmenu.admin.inc';
   $items['admin/build/menu-customize/%menu']['file path'] = drupal_get_path('module', 'bigmenu');
 
-#dpm($items['admin/build/menu-customize/%menu']);
+  #dpm($items['admin/build/menu-customize/%menu']);
 }
 
 /**
+ * Add our own option into the menu management box of the node edit form
+ * 
  * hook_form_alter()
  * 
- * Add our own option into the menu management box
+ * ISSUE:
+ * I don't know how to stop the normal node edit form menu form_alter()
+ * from running each time (and loading all the options each time) 
+ * even though I'm planning to override it. 
+ * There could be a performance issue there.
  */
 function bigmenu_form_alter(&$form, $form_state, $form_id) {
   if (isset($form['#node']) && $form['#node']->type .'_node_form' == $form_id) {
@@ -103,7 +110,7 @@ function bigmenu_theme() {
 }
 
 /**
- * Implementation of hook_enable
+ * Implementation of hook_enable()
  * 
  * Ensure we load after the usual core
  */

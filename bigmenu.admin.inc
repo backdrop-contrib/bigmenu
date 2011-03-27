@@ -1,11 +1,13 @@
 <?php
-//  $Id: bigmenu.admin.inc,v 1.2 2011/02/19 04:07:25 dman Exp $
 
 /**
  * @file
  * Administrative page callbacks for bigmenu module.
  * 
  * Large amounts copied from menu.admin.inc
+ * 
+ * @author Dan (dman) Morrison dan@coders.co.nz
+ * @version 2011
  */
 
 module_load_include('inc', 'menu', 'menu.admin');
@@ -226,7 +228,6 @@ function bigmenu_alias_autocomplete() {
   print drupal_to_js($matches);
   exit();
 }
-
 
 
 /**
