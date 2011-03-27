@@ -249,7 +249,7 @@ function theme_bigmenu_overview_form($form) {
  * ? should just use #submit?
  */
 function bigmenu_overview_form_submit($form, &$form_state) {
-  dpm("submitting " . __FUNCTION__);
-  dpm(get_defined_vars());
+  #dpm("submitting " . __FUNCTION__);
+  #dpm(get_defined_vars());
   return menu_overview_form_submit($form, $form_state);
 }
