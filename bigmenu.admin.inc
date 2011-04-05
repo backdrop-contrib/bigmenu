@@ -3,23 +3,26 @@
 /**
  * @file
  * Administrative page callbacks for bigmenu module.
- * 
+ *
  * Large amounts copied from menu.admin.inc
- * 
+ *
  * @author Dan (dman) Morrison dan@coders.co.nz
  * @version 2011
  */
 
+/**
+ * We re-use as much of the core menu rendering tools as possible.
+ */
 module_load_include('inc', 'menu', 'menu.admin');
- 
+
 /**
  * Form for editing an entire menu tree at once.
  *
  * Shows for one menu the menu items accessible to the current user and
  * relevant operations.
- * 
- * Modified from core to reduce recursion
- * 
+ *
+ * Copied from core and modified to reduce recursion
+ *
  * @see menu_overview_form
  */
 function bigmenu_overview_form(&$form_state, $menu, $depth = 1) {
@@ -57,14 +60,14 @@ function bigmenu_overview_form(&$form_state, $menu, $depth = 1) {
 
 /**
  * Form for editing the immediate children of the given menu item id
- * 
+ *
  * Invoked by menu callback or by json request
- * 
+ *
  * @return FAPI form.
  */
 function bigmenu_slice_form(&$form_state, $menu, $menu_link, $depth = 2) {
   $menu_slice = menu_get_menus();
-  
+
   // DB lookup the children of this item
   global $menu_admin;
   $p_depth = 'p' . $menu_link['depth'];
@@ -89,7 +92,7 @@ function bigmenu_slice_form(&$form_state, $menu, $menu_link, $depth = 2) {
     unset($tree[$ix]['link']);
   }
   // (there was only one, but I didn't know its name)
-  
+
   $form = _bigmenu_overview_tree_form($tree, $depth);
 
   $form['#theme'] = 'bigmenu_overview_form';
@@ -109,19 +112,56 @@ function bigmenu_slice_form(&$form_state, $menu, $menu_link, $depth = 2) {
 /**
  * Return a submenu slice form in json format
  * Menu callback, invoked by AJAX
+ *
+ * Drupals form cache would not allow me to insert arbitrary fields into a form
+ * without letting the server know about it.
  */
-function bigmenu_slice_form_js($menu, $menu_link, $depth = 2) {
+function bigmenu_slice_form_js($menu, $menu_link, $form_id, $form_build_id) {
+  $depth = 2;
+
+  $form_state = array();
+  $slice_form_id = 'bigmenu_slice_form';
+
   $output = drupal_get_form('bigmenu_slice_form', $menu, $menu_link, $depth);
+  # Or maybe,
+  # Need to do the things that drupal_get_form would do,
+  # but retain the form_object for the next step also.
+  # Maybe not?
+  #  $slice_form = drupal_retrieve_form($slice_form_id, $form_state, $menu, $menu_link, $depth);
+  #  drupal_prepare_form($slice_form_id, $slice_form, $form_state);
+  #  drupal_process_form($slice_form_id, $slice_form, $form_state);
+  #  $output = drupal_render_form($slice_form_id, $slice_form);
+
+  // This returns data to the browser immediately.
   drupal_json(array('status' => TRUE, 'data' => $output));
+
+  // After that we will do the slower job of updating the form cache.
+  // Reload the bigmenu_overview_form, with the same args (the menu name) as before,
+
+  // What are the following three lines doing? Search me.
+  // I read the docs on drupal_rebuild_form() and took a guess.
+  $form_state = array();
+  $args = array($form_state, $menu);
+  $form = drupal_rebuild_form($form_id, $form_state, $args, $form_build_id);
+
+  // Just calling drupal_rebuild_form will also re-cache it with the new fields?
+  // How does it know?
+
+  # I thought I would have to:
+  # Then insert the new fields into the cached overview form from the slice form.
+
+  # $form += $slice_form;
+
+  exit;
 }
 
 
 /**
  * Recursive helper function for menu_overview_form().
- * 
- * @see _menu_overview_tree_form
- * 
- * Modified from core to limit recursion
+ *
+ * @see _menu_overview_tree_form()
+ *
+ * Copied from core, and modified to limit recursion
  */
 function _bigmenu_overview_tree_form($tree, $depth = 0) {
   static $form = array('#tree' => TRUE);
@@ -150,6 +190,7 @@ function _bigmenu_overview_tree_form($tree, $depth = 0) {
       );
       $form[$mlid]['mlid'] = array(
         '#type' => 'hidden',
+        #'#type' => 'textfield', '#size' => 5,
         '#value' => $item['mlid'],
       );
       $form[$mlid]['plid'] = array(
@@ -181,7 +222,12 @@ function _bigmenu_overview_tree_form($tree, $depth = 0) {
       }
       else {
         // 'below' contains both immediate children and something else
-        $text = '<span class="bigmenu-toggle">+</span> <span class="count" title="!tooltip">' . t('Show children (%count)' , array('%count' => count($data['below']), '!tooltip' => t('Click to expand and show child items'))) . '</span>';
+        $strings = array(
+          '!show_children' => t('Show children'),
+          '%count' => count($data['below']),
+          '!tooltip' => t('Click to expand and show child items'),
+        );
+        $text = strtr('<span class="bigmenu-toggle">+</span> <span class="count" title="!tooltip"><span class="hide-show">!show_children</span> (%count)</span>', $strings);
         $indicator = l($text, "admin/build/bigmenu-customize/{$item['menu_name']}/subform/{$item['mlid']}", array('html' => TRUE, attributes => array('class' => 'bigmenu-childindictor')));
         $form[$mlid]['title']['#value'] .= '<br/>' . $indicator;
         $form[$mlid]['#attributes']['class'] = 'bigmenu-collapsed';
@@ -194,9 +240,9 @@ function _bigmenu_overview_tree_form($tree, $depth = 0) {
 
 /**
  * Autocomplete callback to find page aliases
- * 
+ *
  * Returns a json array with suggestions based on an entered string
- * 
+ *
  * Matches from the beginning only
  * Removes http etc if you left it in.
  * Only aliases that also match a menu link item path are returned.
@@ -216,7 +262,7 @@ function bigmenu_alias_autocomplete() {
 
   $sql = "
     SELECT u.src, u.dst, ml.mlid FROM {url_alias} u
-    JOIN menu_links ml ON ml.link_path = u.src 
+    JOIN menu_links ml ON ml.link_path = u.src
     WHERE LOWER(u.dst) LIKE LOWER('%s%%')
   ";
   $result = db_query_range($sql, $string, 0, 10);
@@ -235,7 +281,7 @@ function bigmenu_alias_autocomplete() {
  *
  * A stub to core. No need to change anything. It just adds an extra js file and
  * passes it through.
- * 
+ *
  * @ingroup themeable
  */
 function theme_bigmenu_overview_form($form) {
@@ -245,11 +291,9 @@ function theme_bigmenu_overview_form($form) {
 }
 
 /**
- * A stub to core 
+ * A stub to core
  * ? should just use #submit?
  */
 function bigmenu_overview_form_submit($form, &$form_state) {
-  #dpm("submitting " . __FUNCTION__);
-  #dpm(get_defined_vars());
   return menu_overview_form_submit($form, $form_state);
 }

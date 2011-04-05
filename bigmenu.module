@@ -1,18 +1,31 @@
 <?php
 /**
  * @file alternative to core menu management
- * 
+ *
  * Needed when menus get to big to load on one page.
- * 
+ *
  * CONFLICTS WITH tiny_menu. Appropriately enough.
- * 
+ *
+ * Some of the code here - especially the form cache rebuild trigger in
+ * bigmenu_slice_form_js() and the parameters sent on the AJAX URL string feel
+ * quite ungainly.
+ * However the main target - to be able to layer on this flexibility without
+ * modifying core - made a few work-arounds neccessary.
+ *
+ * I did NOT use full Drupal core AHAH routines, as they seemed to rely on the
+ * entire form being submitted and rebuilt in the background each page load.
+ *
+ * As the focus of this module is on *scaling* - I couldn't add that overhead,
+ * so the subforms are generated independently, not as part of the main overview
+ * form. This is why the bigmenu_slice_form_js() cheats form_cache a little bit.
+ *
  * @author Dan (dman) Morrison dan@coders.co.nz
  * @version 2011
  */
- 
+
 /**
  * Declare admin links and AJAX callbacks
- * 
+ *
  * hook_menu()
  */
 function bigmenu_menu() {
@@ -38,6 +51,7 @@ function bigmenu_menu() {
     'file' => 'bigmenu.admin.inc',
   );
   // Same as above, but triggers an equivalent json response
+  // This also expects arg 7,8 to be a form ID and form cache id
   $items['admin/build/bigmenu-customize/%menu/subform/%menu_link/js'] = array(
     'page callback' => 'bigmenu_slice_form_js',
     'page arguments' => array(3, 5),
@@ -51,15 +65,15 @@ function bigmenu_menu() {
     'page callback' => 'bigmenu_alias_autocomplete',
     'file' => 'bigmenu.admin.inc',
   );
-  
+
   return $items;
 }
 
 /**
  * Take over core menu admin page
- * 
+ *
  * hook_menu_alter()
- * 
+ *
  * TODO - should be an admin toggle for this setting
  */
 function bigmenu_menu_alter(&$items) {
@@ -72,13 +86,13 @@ function bigmenu_menu_alter(&$items) {
 
 /**
  * Add our own option into the menu management box of the node edit form
- * 
+ *
  * hook_form_alter()
- * 
+ *
  * ISSUE:
  * I don't know how to stop the normal node edit form menu form_alter()
- * from running each time (and loading all the options each time) 
- * even though I'm planning to override it. 
+ * from running each time (and loading all the options each time)
+ * even though I'm planning to override it.
  * There could be a performance issue there.
  */
 function bigmenu_form_alter(&$form, $form_state, $form_id) {
@@ -92,7 +106,7 @@ function bigmenu_form_alter(&$form, $form_state, $form_id) {
       '#type' => 'textfield',
       '#title' => t('Menu parent path'),
       '#description' => t('Enter just the URL or path of your desired menu parent.'),
-      '#autocomplete_path' => 'admin/build/bigmenu/alias_autocomplete',  
+      '#autocomplete_path' => 'admin/build/bigmenu/alias_autocomplete',
     );
   }
 }
@@ -111,7 +125,7 @@ function bigmenu_theme() {
 
 /**
  * Implementation of hook_enable()
- * 
+ *
  * Ensure we load after the usual core
  */
 function bigmenu_enable() {

@@ -36,6 +36,13 @@ Drupal.behaviors.bigmenu = function(context) {
           // just add 'js' to the end
           var url = $(this).attr('href') + '/js';
 
+          // ALSO, to deal with Drupal form API form cache, add the form build ID
+          // so the background process can update the known fields
+          var form = $('.menu-mlid', parentRow).attr('form')
+          form_id = $('input[@name="form_id"]', form).val();
+          form_build_id = $('input[@name="form_build_id"]', form).val();
+          url += "/" + form_id + "/" + form_build_id
+
           // Make an ajax call for the child items.
           $.ajax({
             dataType: 'json',
@@ -75,7 +82,8 @@ Drupal.behaviors.bigmenu = function(context) {
                 // Indicate we are expanded now
                 $(parentRow)
                   .removeClass('bigmenu-collapsed')
-                  .addClass('bigmenu-expanded')
+                  .addClass('bigmenu-expanded');
+                $('.hide-show', parentRow).html('Hide children');
               }
               else {
                 // Failure...
@@ -103,10 +111,10 @@ Drupal.behaviors.bigmenu = function(context) {
             .removeClass('bigmenu-processing')
             .removeClass('bigmenu-expanded')
             .addClass('bigmenu-collapsed')
+          $('.hide-show', parentRow).html('Show children');
         }
 	          
 	      return false;
 	    }
-    );
-    
+    );    
 }
