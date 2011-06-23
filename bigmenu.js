@@ -39,8 +39,8 @@ Drupal.behaviors.bigmenu = function(context) {
           // ALSO, to deal with Drupal form API form cache, add the form build ID
           // so the background process can update the known fields
           var form = $('.menu-mlid', parentRow).attr('form')
-          form_id = $('input[@name="form_id"]', form).val();
-          form_build_id = $('input[@name="form_build_id"]', form).val();
+          form_id = $('input[name="form_id"]', form).val();
+          form_build_id = $('input[name="form_build_id"]', form).val();
           url += "/" + form_id + "/" + form_build_id
 
           // Make an ajax call for the child items.

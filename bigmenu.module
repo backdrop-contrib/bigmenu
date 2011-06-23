@@ -96,6 +96,10 @@ function bigmenu_menu_alter(&$items) {
  * There could be a performance issue there.
  */
 function bigmenu_form_alter(&$form, $form_state, $form_id) {
+  // Only add this util if the switch is on. Currently no UI, currently unfinished
+  if (! variable_get('bigmenu_alter_node_form', FALSE)) {
+    return;
+  }
   if (isset($form['#node']) && $form['#node']->type .'_node_form' == $form_id) {
     $item = $form['#node']->menu;
     if ($item['mlid']) {
