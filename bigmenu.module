@@ -100,7 +100,7 @@ function bigmenu_form_alter(&$form, $form_state, $form_id) {
   if (! variable_get('bigmenu_alter_node_form', FALSE)) {
     return;
   }
-  if (isset($form['#node']) && $form['#node']->type .'_node_form' == $form_id) {
+  if (isset($form['#node']) && $form['#node']->type . '_node_form' == $form_id) {
     $item = $form['#node']->menu;
     if ($item['mlid']) {
       // There is an existing link.

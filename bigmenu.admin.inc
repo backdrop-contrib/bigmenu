@@ -27,7 +27,7 @@ module_load_include('inc', 'menu', 'menu.admin');
  */
 function bigmenu_overview_form(&$form_state, $menu, $depth = 1) {
   global $menu_admin;
-  $p_depth = 'p' . ($depth+3);
+  $p_depth = 'p' . ($depth + 3);
   $sql = "
     SELECT m.load_functions, m.to_arg_functions, m.access_callback, m.access_arguments, m.page_callback, m.page_arguments, m.title, m.title_callback, m.title_arguments, m.type, m.description, ml.*
     FROM {menu_links} ml LEFT JOIN {menu_router} m ON m.path = ml.router_path
@@ -88,7 +88,7 @@ function bigmenu_slice_form(&$form_state, $menu, $menu_link, $depth = 2) {
   $menu_admin = FALSE;
 
   // When doing a slice, don't show the actual parent link item, just the children
-  foreach($tree as $ix => $data) {
+  foreach ($tree as $ix => $data) {
     unset($tree[$ix]['link']);
   }
   // (there was only one, but I didn't know its name)
@@ -171,10 +171,10 @@ function _bigmenu_overview_tree_form($tree, $depth = 0) {
     $item = $data['link'];
     // Don't show callbacks; these have $item['hidden'] < 0.
     if ($item && $item['hidden'] >= 0) {
-      $mlid = 'mlid:'. $item['mlid'];
+      $mlid = 'mlid:' . $item['mlid'];
       $form[$mlid]['#item'] = $item;
       $form[$mlid]['#attributes'] = $item['hidden'] ? array('class' => 'menu-disabled') : array('class' => 'menu-enabled');
-      $form[$mlid]['title']['#value'] = l($item['title'], $item['href'], $item['localized_options']) . ($item['hidden'] ? ' ('. t('disabled') .')' : '');
+      $form[$mlid]['title']['#value'] = l($item['title'], $item['href'], $item['localized_options']) . ($item['hidden'] ? ' (' . t('disabled') . ')' : '');
       $form[$mlid]['hidden'] = array(
         '#type' => 'checkbox',
         '#default_value' => !$item['hidden'],
@@ -200,14 +200,14 @@ function _bigmenu_overview_tree_form($tree, $depth = 0) {
       );
       // Build a list of operations.
       $operations = array();
-      $operations['edit'] = l(t('edit'), 'admin/build/menu/item/'. $item['mlid'] .'/edit');
+      $operations['edit'] = l(t('edit'), 'admin/build/menu/item/' . $item['mlid'] . '/edit');
       // Only items created by the menu module can be deleted.
       if ($item['module'] == 'menu' || $item['updated'] == 1) {
-        $operations['delete'] = l(t('delete'), 'admin/build/menu/item/'. $item['mlid'] .'/delete');
+        $operations['delete'] = l(t('delete'), 'admin/build/menu/item/' . $item['mlid'] . '/delete');
       }
       // Set the reset column.
       elseif ($item['module'] == 'system' && $item['customized']) {
-        $operations['reset'] = l(t('reset'), 'admin/build/menu/item/'. $item['mlid'] .'/reset');
+        $operations['reset'] = l(t('reset'), 'admin/build/menu/item/' . $item['mlid'] . '/reset');
       }
 
       $form[$mlid]['operations'] = array();
@@ -257,7 +257,7 @@ function bigmenu_alias_autocomplete() {
 
   if (valid_url($string)) {
     $url_parts = parse_url($string);
-    $string = ltrim($url_parts['path'], '/');;
+    $string = ltrim($url_parts['path'], '/');
   }
 
   $sql = "
