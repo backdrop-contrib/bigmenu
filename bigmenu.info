@@ -1,4 +1,3 @@
-; $Id: bigmenu.info,v 1.1 2011/02/16 16:07:12 dman Exp $
 name = Big Menu
 description = Scalable replacement for core menu management screen. Uses AJAX to replace the global menu management page, suitable for thousands of items
-core=6.x
+core = 7.x

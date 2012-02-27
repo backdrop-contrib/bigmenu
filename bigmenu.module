@@ -29,18 +29,17 @@
  * hook_menu()
  */
 function bigmenu_menu() {
-  $items['admin/build/bigmenu-customize/%menu'] = array(
+  $items['admin/structure/bigmenu-customize/%menu'] = array(
     'title' => 'Customize menu',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('bigmenu_overview_form', 3),
+    'page arguments' => array('bigmmenu_overview_form', 3),
     'title callback' => 'menu_overview_title',
     'title arguments' => array(3),
     'access arguments' => array('administer menu'),
     'type' => MENU_CALLBACK,
-    'file' => 'bigmenu.admin.inc',
   );
   // Edit just a part of a menu. Arg 5 is the parent menu link id
-  $items['admin/build/bigmenu-customize/%menu/subform/%menu_link'] = array(
+  $items['admin/structure/bigmenu-customize/%menu/subform/%menu_link'] = array(
     'title' => 'Edit a slice of a menu',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('bigmenu_slice_form', 3, 5),
@@ -52,14 +51,14 @@ function bigmenu_menu() {
   );
   // Same as above, but triggers an equivalent json response
   // This also expects arg 7,8 to be a form ID and form cache id
-  $items['admin/build/bigmenu-customize/%menu/subform/%menu_link/js'] = array(
+  $items['admin/structure/bigmenu-customize/%menu/subform/%menu_link/js'] = array(
     'page callback' => 'bigmenu_slice_form_js',
     'page arguments' => array(3, 5),
     'access arguments' => array('administer menu'),
     'type' => MENU_CALLBACK,
     'file' => 'bigmenu.admin.inc',
   );
-  $items['admin/build/bigmenu/alias_autocomplete'] = array(
+  $items['admin/structure/bigmenu/alias_autocomplete'] = array(
     'type' => MENU_CALLBACK,
     'access arguments' => array('administer menu'),
     'page callback' => 'bigmenu_alias_autocomplete',
@@ -77,42 +76,9 @@ function bigmenu_menu() {
  * TODO - should be an admin toggle for this setting
  */
 function bigmenu_menu_alter(&$items) {
-  $items['admin/build/menu-customize/%menu']['page arguments'] = array('bigmenu_overview_form', 3);
-  $items['admin/build/menu-customize/%menu']['file'] = 'bigmenu.admin.inc';
-  $items['admin/build/menu-customize/%menu']['file path'] = drupal_get_path('module', 'bigmenu');
-
-  #dpm($items['admin/build/menu-customize/%menu']);
-}
-
-/**
- * Add our own option into the menu management box of the node edit form
- *
- * hook_form_alter()
- *
- * ISSUE:
- * I don't know how to stop the normal node edit form menu form_alter()
- * from running each time (and loading all the options each time)
- * even though I'm planning to override it.
- * There could be a performance issue there.
- */
-function bigmenu_form_alter(&$form, $form_state, $form_id) {
-  // Only add this util if the switch is on. Currently no UI, currently unfinished
-  if (! variable_get('bigmenu_alter_node_form', FALSE)) {
-    return;
-  }
-  if (isset($form['#node']) && $form['#node']->type . '_node_form' == $form_id) {
-    $item = $form['#node']->menu;
-    if ($item['mlid']) {
-      // There is an existing link.
-    }
-
-    $form['menu']['bigmenu_url'] = array(
-      '#type' => 'textfield',
-      '#title' => t('Menu parent path'),
-      '#description' => t('Enter just the URL or path of your desired menu parent.'),
-      '#autocomplete_path' => 'admin/build/bigmenu/alias_autocomplete',
-    );
-  }
+  $items['admin/structure/menu/manage/%menu']['page arguments'] = array('bigmenu_overview_form', 4);
+  $items['admin/structure/menu/manage/%menu']['file'] = 'bigmenu.admin.inc';
+  $items['admin/structure/menu/manage/%menu']['file path'] = drupal_get_path('module', 'bigmenu');
 }
 
 /**
@@ -123,6 +89,7 @@ function bigmenu_theme() {
     'bigmenu_overview_form' => array(
       'file' => 'bigmenu.admin.inc',
       'arguments' => array('form' => NULL),
+      'render element' => 'form',
     ),
   );
 }
@@ -133,5 +100,8 @@ function bigmenu_theme() {
  * Ensure we load after the usual core
  */
 function bigmenu_enable() {
-  db_query('UPDATE {system} SET weight = 10 WHERE name = "bigmenu"');
+  db_update('system')
+    ->fields(array('weight' => 10))
+    ->condition('name', 'bigmenu')
+    ->execute();
 }

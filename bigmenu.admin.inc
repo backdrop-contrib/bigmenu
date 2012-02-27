@@ -15,27 +15,21 @@
  */
 module_load_include('inc', 'menu', 'menu.admin');
 
-/**
- * Form for editing an entire menu tree at once.
- *
- * Shows for one menu the menu items accessible to the current user and
- * relevant operations.
- *
- * Copied from core and modified to reduce recursion
- *
- * @see menu_overview_form
- */
-function bigmenu_overview_form(&$form_state, $menu, $depth = 1) {
+function bigmenu_overview_form($form, &$form_state, $menu, $depth = 1) {
   global $menu_admin;
   $p_depth = 'p' . ($depth + 3);
   $sql = "
     SELECT m.load_functions, m.to_arg_functions, m.access_callback, m.access_arguments, m.page_callback, m.page_arguments, m.title, m.title_callback, m.title_arguments, m.type, m.description, ml.*
     FROM {menu_links} ml LEFT JOIN {menu_router} m ON m.path = ml.router_path
-    WHERE ml.menu_name = '%s'
-    AND %s = 0
+    WHERE ml.menu_name = :menu_name
+    AND :p_depth = 0
     ORDER BY p1 ASC, p2 ASC, p3 ASC, p4 ASC, p5 ASC, p6 ASC, p7 ASC, p8 ASC, p9 ASC";
-  $result = db_query($sql, $menu['menu_name'], $p_depth);
-  $tree = menu_tree_data($result);
+  $result = db_query($sql, array(':menu_name' => $menu['menu_name'], ':p_depth' => $p_depth), array('fetch' => PDO::FETCH_ASSOC));
+  $links = array();
+  foreach ($result as $item) {
+    $links[] = $item;
+  }
+  $tree = menu_tree_data($links);
   $node_links = array();
   menu_tree_collect_node_links($tree, $node_links);
   // We indicate that a menu administrator is running the menu access check.
@@ -43,20 +37,20 @@ function bigmenu_overview_form(&$form_state, $menu, $depth = 1) {
   menu_tree_check_access($tree, $node_links);
   $menu_admin = FALSE;
 
-  $form = _bigmenu_overview_tree_form($tree, $depth);
-  $form['#menu'] =  $menu;
-  if (element_children($form)) {
-    $form['submit'] = array(
+  $new_form = _bigmenu_overview_tree_form($tree);
+  $new_form['#menu'] =  $menu;
+  if (element_children($new_form)) {
+    $new_form['submit'] = array(
       '#type' => 'submit',
       '#value' => t('Save configuration'),
     );
   }
   else {
-    $form['empty_menu'] = array('#value' => t('There are no menu items yet.'));
+    $new_form['#empty_text'] = array('#markup' => t('There are no menu items yet.'));
   }
-  return $form;
-}
 
+  return $new_form;
+}
 
 /**
  * Form for editing the immediate children of the given menu item id
@@ -65,7 +59,7 @@ function bigmenu_overview_form(&$form_state, $menu, $depth = 1) {
  *
  * @return FAPI form.
  */
-function bigmenu_slice_form(&$form_state, $menu, $menu_link, $depth = 2) {
+function bigmenu_slice_form($form, &$form_state, $menu, $menu_link, $depth = 2) {
   $menu_slice = menu_get_menus();
 
   // DB lookup the children of this item
@@ -74,11 +68,15 @@ function bigmenu_slice_form(&$form_state, $menu, $menu_link, $depth = 2) {
   $sql = "
     SELECT m.load_functions, m.to_arg_functions, m.access_callback, m.access_arguments, m.page_callback, m.page_arguments, m.title, m.title_callback, m.title_arguments, m.type, m.description, ml.*
     FROM {menu_links} ml LEFT JOIN {menu_router} m ON m.path = ml.router_path
-    WHERE ml.menu_name = '%s'
-    AND %s = %d
+    WHERE ml.menu_name = :menu_name
+    AND " . check_plain($p_depth) . " = :mlid
     ORDER BY p1 ASC, p2 ASC, p3 ASC, p4 ASC, p5 ASC, p6 ASC, p7 ASC, p8 ASC, p9 ASC";
-  $result = db_query($sql, $menu['menu_name'], $p_depth, $menu_link['mlid']);
-  $tree = menu_tree_data($result);
+  $result = db_query($sql, array(':menu_name' => $menu['menu_name'], ':mlid' => $menu_link['mlid']), array('fetch' => PDO::FETCH_ASSOC));
+  $links = array();
+  foreach ($result as $item) {
+    $links[] = $item;
+  }
+  $tree = menu_tree_data($links);
 
   $node_links = array();
   menu_tree_collect_node_links($tree, $node_links);
@@ -89,7 +87,7 @@ function bigmenu_slice_form(&$form_state, $menu, $menu_link, $depth = 2) {
 
   // When doing a slice, don't show the actual parent link item, just the children
   foreach ($tree as $ix => $data) {
-    unset($tree[$ix]['link']);
+    $tree[$ix]['link'] = array();
   }
   // (there was only one, but I didn't know its name)
 
@@ -104,7 +102,7 @@ function bigmenu_slice_form(&$form_state, $menu, $menu_link, $depth = 2) {
     );
   }
   else {
-    $form['empty_menu'] = array('#value' => t('There are no menu items yet.'));
+    $form['#empty_text'] = array('#markup' => t('There are no menu items yet.'));
   }
   return $form;
 }
@@ -118,10 +116,9 @@ function bigmenu_slice_form(&$form_state, $menu, $menu_link, $depth = 2) {
  */
 function bigmenu_slice_form_js($menu, $menu_link, $form_id, $form_build_id) {
   $depth = 2;
-
-  $form_state = array();
   $slice_form_id = 'bigmenu_slice_form';
 
+  $form_state = form_state_defaults();
   $output = drupal_get_form('bigmenu_slice_form', $menu, $menu_link, $depth);
   # Or maybe,
   # Need to do the things that drupal_get_form would do,
@@ -133,109 +130,15 @@ function bigmenu_slice_form_js($menu, $menu_link, $form_id, $form_build_id) {
   #  $output = drupal_render_form($slice_form_id, $slice_form);
 
   // This returns data to the browser immediately.
-  drupal_json(array('status' => TRUE, 'data' => $output));
+  drupal_json_output(array('status' => TRUE, 'data' => $output));
 
   // After that we will do the slower job of updating the form cache.
   // Reload the bigmenu_overview_form, with the same args (the menu name) as before,
-
-  // What are the following three lines doing? Search me.
-  // I read the docs on drupal_rebuild_form() and took a guess.
-  $form_state = array();
-  $args = array($form_state, $menu);
-  $form = drupal_rebuild_form($form_id, $form_state, $args, $form_build_id);
-
-  // Just calling drupal_rebuild_form will also re-cache it with the new fields?
-  // How does it know?
-
-  # I thought I would have to:
-  # Then insert the new fields into the cached overview form from the slice form.
-
-  # $form += $slice_form;
+  $args = array($menu, $menu_link);
+  $form_state['build_info']['args'] = $args;
+  $form = drupal_rebuild_form($form_id, $form_state);
 
   exit;
-}
-
-
-/**
- * Recursive helper function for menu_overview_form().
- *
- * @see _menu_overview_tree_form()
- *
- * Copied from core, and modified to limit recursion
- */
-function _bigmenu_overview_tree_form($tree, $depth = 0) {
-  static $form = array('#tree' => TRUE);
-
-  foreach ($tree as $data) {
-    $title = '';
-    $item = $data['link'];
-    // Don't show callbacks; these have $item['hidden'] < 0.
-    if ($item && $item['hidden'] >= 0) {
-      $mlid = 'mlid:' . $item['mlid'];
-      $form[$mlid]['#item'] = $item;
-      $form[$mlid]['#attributes'] = $item['hidden'] ? array('class' => 'menu-disabled') : array('class' => 'menu-enabled');
-      $form[$mlid]['title']['#value'] = l($item['title'], $item['href'], $item['localized_options']) . ($item['hidden'] ? ' (' . t('disabled') . ')' : '');
-      $form[$mlid]['hidden'] = array(
-        '#type' => 'checkbox',
-        '#default_value' => !$item['hidden'],
-      );
-      $form[$mlid]['expanded'] = array(
-        '#type' => 'checkbox',
-        '#default_value' => $item['expanded'],
-      );
-      $form[$mlid]['weight'] = array(
-        '#type' => 'weight',
-        '#delta' => 50,
-        '#default_value' => isset($form_state[$mlid]['weight']) ? $form_state[$mlid]['weight'] : $item['weight'],
-      );
-      $form[$mlid]['mlid'] = array(
-        '#type' => 'hidden',
-        #'#type' => 'textfield', '#size' => 5,
-        '#value' => $item['mlid'],
-      );
-      $form[$mlid]['plid'] = array(
-        '#type' => 'textfield',
-        '#default_value' => isset($form_state[$mlid]['plid']) ? $form_state[$mlid]['plid'] : $item['plid'],
-        '#size' => 6,
-      );
-      // Build a list of operations.
-      $operations = array();
-      $operations['edit'] = l(t('edit'), 'admin/build/menu/item/' . $item['mlid'] . '/edit');
-      // Only items created by the menu module can be deleted.
-      if ($item['module'] == 'menu' || $item['updated'] == 1) {
-        $operations['delete'] = l(t('delete'), 'admin/build/menu/item/' . $item['mlid'] . '/delete');
-      }
-      // Set the reset column.
-      elseif ($item['module'] == 'system' && $item['customized']) {
-        $operations['reset'] = l(t('reset'), 'admin/build/menu/item/' . $item['mlid'] . '/reset');
-      }
-
-      $form[$mlid]['operations'] = array();
-      foreach ($operations as $op => $value) {
-        $form[$mlid]['operations'][$op] = array('#value' => $value);
-      }
-    }
-
-    if ($data['below']) {
-      if ($depth > 0) {
-        _bigmenu_overview_tree_form($data['below'], $depth - 1);
-      }
-      else {
-        // 'below' contains both immediate children and something else
-        $strings = array(
-          '!show_children' => t('Show children'),
-          '%count' => count($data['below']),
-          '!tooltip' => t('Click to expand and show child items'),
-        );
-        $text = strtr('<span class="bigmenu-toggle">+</span> <span class="count" title="!tooltip"><span class="hide-show">!show_children</span> (%count)</span>', $strings);
-        $indicator = l($text, "admin/build/bigmenu-customize/{$item['menu_name']}/subform/{$item['mlid']}", array('html' => TRUE, attributes => array('class' => 'bigmenu-childindictor')));
-        $form[$mlid]['title']['#value'] .= '<br/>' . $indicator;
-        $form[$mlid]['#attributes']['class'] = 'bigmenu-collapsed';
-
-      }
-    }
-  }
-  return $form;
 }
 
 /**
@@ -296,4 +199,82 @@ function theme_bigmenu_overview_form($form) {
  */
 function bigmenu_overview_form_submit($form, &$form_state) {
   return menu_overview_form_submit($form, $form_state);
+}
+
+/**
+ * Recursive helper function for menu_overview_form().
+ *
+ * @see _menu_overview_tree_form()
+ *
+ * Copied from core, and modified to limit recursion
+ */
+function _bigmenu_overview_tree_form($tree, $depth = 0) {
+  $form = &drupal_static(__FUNCTION__, array('#tree' => TRUE));
+  foreach ($tree as $data) {
+    $title = '';
+    $item = $data['link'];
+    // Don't show callbacks; these have $item['hidden'] < 0.
+    if ($item && $item['hidden'] >= 0) {
+      $mlid = 'mlid:' . $item['mlid'];
+      $form[$mlid]['#item'] = $item;
+      $form[$mlid]['#attributes'] = $item['hidden'] ? array('class' => array('menu-disabled')) : array('class' => array('menu-enabled'));
+      $form[$mlid]['title']['#markup'] = l($item['title'], $item['href'], $item['localized_options']) . ($item['hidden'] ? ' (' . t('disabled') . ')' : '');
+      $form[$mlid]['hidden'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Enable @title menu link', array('@title' => $item['title'])),
+        '#title_display' => 'invisible',
+        '#default_value' => !$item['hidden'],
+      );
+      $form[$mlid]['expanded'] = array(
+        '#type' => 'checkbox',
+        '#default_value' => $item['expanded'],
+      );
+      $form[$mlid]['weight'] = array(
+        '#type' => 'weight',
+        '#delta' => 50,
+        '#default_value' => $item['weight'],
+      );
+      $form[$mlid]['mlid'] = array(
+        '#type' => 'hidden',
+        '#value' => $item['mlid'],
+      );
+      $form[$mlid]['plid'] = array(
+        '#type' => 'textfield',
+        '#default_value' => $item['plid'],
+        '#size' => 6,
+      );
+      // Build a list of operations.
+      $operations = array();
+      $operations['edit'] = array('#type' => 'link', '#title' => t('edit'), '#href' => 'admin/structure/menu/item/' . $item['mlid'] . '/edit');
+      // Only items created by the menu module can be deleted.
+      if ($item['module'] == 'menu' || $item['updated'] == 1) {
+        $operations['delete'] = array('#type' => 'link', '#title' => t('delete'), '#href' => 'admin/structure/menu/item/' . $item['mlid'] . '/delete');
+      }
+      // Set the reset column.
+      elseif ($item['module'] == 'system' && $item['customized']) {
+        $operations['reset'] = array('#type' => 'link', '#title' => t('reset'), '#href' => 'admin/structure/menu/item/' . $item['mlid'] . '/reset');
+      }
+      $form[$mlid]['operations'] = $operations;
+    }
+
+    if ($data['below']) {
+      if ($depth > 0) {
+        _bigmenu_overview_tree_form($data['below'], $depth - 1);
+      }
+      else {
+        // 'below' contains both immediate children and something else
+        $strings = array(
+          '!show_children' => t('Show children'),
+          '%count' => count($data['below']),
+          '!tooltip' => t('Click to expand and show child items'),
+        );
+        $text = strtr('<span class="bigmenu-toggle">+</span> <span class="count" title="!tooltip"><span class="hide-show">!show_children</span> (%count)</span>', $strings);
+        $indicator = l($text, "admin/structure/bigmenu-customize/{$item['menu_name']}/subform/{$item['mlid']}", array('html' => TRUE, 'attributes' => array('class' => array('bigmenu-childindictor'))));
+        $form[$mlid]['title']['#markup'] .= '<br/>' . $indicator;
+        $form[$mlid]['#attributes']['class'][] = 'bigmenu-collapsed';
+
+      }
+    }
+  }
+  return $form;
 }
