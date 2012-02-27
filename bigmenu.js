@@ -49,7 +49,7 @@ Drupal.behaviors.bigmenu = {
               dataType: 'json',
               url: url,
               success: function(data, textStatus, XMLHttpRequest) {
-                data = Drupal.parseJson(data);
+                //data = jQuery.parseJson(data);
                 if (data.status) {
 
                   // Shift the rows into this form.

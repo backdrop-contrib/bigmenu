@@ -17,7 +17,7 @@ module_load_include('inc', 'menu', 'menu.admin');
 
 function bigmenu_overview_form($form, &$form_state, $menu, $depth = 1) {
   global $menu_admin;
-  $p_depth = 'p' . ($depth + 3);
+  $p_depth = 'p' . (string)((int)$depth + 3);
   $sql = "
     SELECT m.load_functions, m.to_arg_functions, m.access_callback, m.access_arguments, m.page_callback, m.page_arguments, m.title, m.title_callback, m.title_arguments, m.type, m.description, ml.*
     FROM {menu_links} ml LEFT JOIN {menu_router} m ON m.path = ml.router_path
@@ -120,14 +120,7 @@ function bigmenu_slice_form_js($menu, $menu_link, $form_id, $form_build_id) {
 
   $form_state = form_state_defaults();
   $output = drupal_get_form('bigmenu_slice_form', $menu, $menu_link, $depth);
-  # Or maybe,
-  # Need to do the things that drupal_get_form would do,
-  # but retain the form_object for the next step also.
-  # Maybe not?
-  #  $slice_form = drupal_retrieve_form($slice_form_id, $form_state, $menu, $menu_link, $depth);
-  #  drupal_prepare_form($slice_form_id, $slice_form, $form_state);
-  #  drupal_process_form($slice_form_id, $slice_form, $form_state);
-  #  $output = drupal_render_form($slice_form_id, $slice_form);
+  $output = drupal_render($output);
 
   // This returns data to the browser immediately.
   drupal_json_output(array('status' => TRUE, 'data' => $output));
@@ -136,6 +129,7 @@ function bigmenu_slice_form_js($menu, $menu_link, $form_id, $form_build_id) {
   // Reload the bigmenu_overview_form, with the same args (the menu name) as before,
   $args = array($menu, $menu_link);
   $form_state['build_info']['args'] = $args;
+  $form_state['values'] = array();
   $form = drupal_rebuild_form($form_id, $form_state);
 
   exit;
@@ -225,23 +219,20 @@ function _bigmenu_overview_tree_form($tree, $depth = 0) {
         '#title_display' => 'invisible',
         '#default_value' => !$item['hidden'],
       );
-      $form[$mlid]['expanded'] = array(
-        '#type' => 'checkbox',
-        '#default_value' => $item['expanded'],
-      );
       $form[$mlid]['weight'] = array(
         '#type' => 'weight',
         '#delta' => 50,
         '#default_value' => $item['weight'],
+        '#title_display' => 'invisible',
+        '#title' => t('Weight for @title', array('@title' => $item['title'])),
       );
       $form[$mlid]['mlid'] = array(
         '#type' => 'hidden',
         '#value' => $item['mlid'],
       );
       $form[$mlid]['plid'] = array(
-        '#type' => 'textfield',
+        '#type' => 'hidden',
         '#default_value' => $item['plid'],
-        '#size' => 6,
       );
       // Build a list of operations.
       $operations = array();
