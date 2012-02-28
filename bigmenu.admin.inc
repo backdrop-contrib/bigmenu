@@ -116,21 +116,21 @@ function bigmenu_slice_form($form, &$form_state, $menu, $menu_link, $depth = 2) 
  */
 function bigmenu_slice_form_js($menu, $menu_link, $form_id, $form_build_id) {
   $depth = 2;
-  $slice_form_id = 'bigmenu_slice_form';
 
   $form_state = form_state_defaults();
-  $output = drupal_get_form('bigmenu_slice_form', $menu, $menu_link, $depth);
-  $output = drupal_render($output);
+  $old_form = drupal_get_form('bigmenu_slice_form', $menu, $menu_link, $depth);
+  $output = drupal_render($old_form);
 
   // This returns data to the browser immediately.
   drupal_json_output(array('status' => TRUE, 'data' => $output));
 
   // After that we will do the slower job of updating the form cache.
   // Reload the bigmenu_overview_form, with the same args (the menu name) as before,
-  $args = array($menu, $menu_link);
+  $args = array($menu);
   $form_state['build_info']['args'] = $args;
   $form_state['values'] = array();
-  $form = drupal_rebuild_form($form_id, $form_state);
+  $form_state['rebuild_info']['copy']['#build_id'] = $form_build_id;
+  $form = drupal_rebuild_form($form_id, $form_state, array('#build_id' => $form_build_id));
 
   exit;
 }
