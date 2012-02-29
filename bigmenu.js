@@ -22,6 +22,18 @@ Drupal.behaviors.bigmenu = {
           // Find the mlid of the cell we are in.
           var mlid = $('.menu-mlid', parentRow).val();
 
+          // If children have been generated already, just show them again.
+          if ($(parentRow).hasClass("bigmenu-generated") && $(parentRow).hasClass("bigmenu-collapsed")) {
+            $('.childOf-' + mlid).css('display', '');
+            // Indicate we are expanded now
+            $(parentRow)
+              .removeClass('bigmenu-collapsed')
+              .addClass('bigmenu-expanded');
+            $('.hide-show', parentRow).html('Hide children');
+
+            return false;
+          }
+
           // Prevent double-clicks
           if ($(parentRow).hasClass("bigmenu-processing")) {
             return;
@@ -106,13 +118,14 @@ Drupal.behaviors.bigmenu = {
           else {
             // This item was already expanded, so a click means it should close.
             // That means hide the kids
-            $('.childOf-' + mlid).remove();
+            $('.childOf-' + mlid).css('display', 'none');
 
             // Indicate we are closed now
             $(parentRow)
               .removeClass('bigmenu-processing')
               .removeClass('bigmenu-expanded')
               .addClass('bigmenu-collapsed')
+              .addClass('bigmenu-generated')
             $('.hide-show', parentRow).html('Show children');
           }
 
