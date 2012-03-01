@@ -58,10 +58,13 @@ function bigmenu_menu() {
     'type' => MENU_CALLBACK,
     'file' => 'bigmenu.admin.inc',
   );
-  $items['admin/structure/bigmenu/alias_autocomplete'] = array(
-    'type' => MENU_CALLBACK,
+  $items['admin/config/user-interface/bigmenu'] = array(
+    'title' => t('Big Menu Settings'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('bigmenu_settings'),
+    'description' => t('Configure settings for bigmenu module.'),
     'access arguments' => array('administer menu'),
-    'page callback' => 'bigmenu_alias_autocomplete',
+    'type' => MENU_NORMAL_ITEM,
     'file' => 'bigmenu.admin.inc',
   );
 

@@ -7,7 +7,8 @@
  * Large amounts copied from menu.admin.inc
  *
  * @author Dan (dman) Morrison dan@coders.co.nz
- * @version 2011
+ * @author Adam (acbramley) Bramley adam@catalyst.net.nz
+ * @version 2012
  */
 
 /**
@@ -117,7 +118,7 @@ function bigmenu_slice_form($form, &$form_state, $menu, $menu_link, $depth = 2) 
  * without letting the server know about it.
  */
 function bigmenu_slice_form_js($menu, $menu_link, $form_id, $form_build_id) {
-  $depth = 2;
+  $depth = variable_get('bigmenu_depth', 1);
 
   $form_state = form_state_defaults();
   $old_form = drupal_get_form('bigmenu_slice_form', $menu, $menu_link, $depth);
@@ -138,44 +139,6 @@ function bigmenu_slice_form_js($menu, $menu_link, $form_id, $form_build_id) {
 }
 
 /**
- * Autocomplete callback to find page aliases
- *
- * Returns a json array with suggestions based on an entered string
- *
- * Matches from the beginning only
- * Removes http etc if you left it in.
- * Only aliases that also match a menu link item path are returned.
- * The key used is the mlid, not the alias id or the path.
- */
-function bigmenu_alias_autocomplete() {
-  // The URL callback may have any number of slashes in it, which will have been split out.
-  $args = func_get_args();
-  $string = join('/', $args);
-  // if it was an URL, one of the slashes got squashed - fixit
-  $string = preg_replace('|http:/(\w)|', 'http://$1', $string);
-
-  if (valid_url($string)) {
-    $url_parts = parse_url($string);
-    $string = ltrim($url_parts['path'], '/');
-  }
-
-  $sql = "
-    SELECT u.src, u.dst, ml.mlid FROM {url_alias} u
-    JOIN menu_links ml ON ml.link_path = u.src
-    WHERE LOWER(u.dst) LIKE LOWER('%s%%')
-  ";
-  $result = db_query_range($sql, $string, 0, 10);
-  $matches = array();
-  while ($alias = db_fetch_object($result)) {
-    $id = check_plain($alias->dst) . " [mlid:{$alias->mlid}]";
-    $matches[$id] = check_plain($alias->dst);
-  }
-  print drupal_to_js($matches);
-  exit();
-}
-
-
-/**
  * Theme the menu overview form into a table.
  *
  * A stub to core. No need to change anything. It just adds an extra js file and
@@ -191,11 +154,30 @@ function theme_bigmenu_overview_form($form) {
 
 /**
  * A stub to core
- * ? should just use #submit?
  */
 function bigmenu_overview_form_submit($form, &$form_state) {
   return menu_overview_form_submit($form, $form_state);
 }
+
+/**
+ * Admin settings form.
+ */
+function bigmenu_settings($form, &$form_state) {
+  $form['bigmenu_settings'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Settings'),
+  );
+  $form['bigmenu_settings']['bigmenu_depth'] = array(
+      '#type' => 'select',
+      '#title' => t('Big Menu Depth'),
+      '#description' => t('This setting controls how many levels are generated at a time when showing children of a menu item.'),
+      '#required' => TRUE,
+      '#default_value' => variable_get('bigmenu_depth', 1),
+      '#options' => array(1 => '1', 2 => '2', 3 => '3'),
+  );
+  return system_settings_form($form);
+}
+
 
 /**
  * Recursive helper function for menu_overview_form().
