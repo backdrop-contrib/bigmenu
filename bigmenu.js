@@ -92,6 +92,10 @@ Drupal.behaviors.bigmenu = {
                   $('#menu-overview .tabledrag-handle').remove();
 
                   Drupal.attachBehaviors();
+                  // Remove tabledrag warning, otherwise it will duplicate for each set of children we show.
+                  Drupal.theme.tableDragChangedWarning = function () {
+                    return '';
+                  };
 
                   // Indicate we are expanded now
                   $(parentRow)

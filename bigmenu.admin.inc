@@ -17,6 +17,7 @@ module_load_include('inc', 'menu', 'menu.admin');
 
 function bigmenu_overview_form($form, &$form_state, $menu, $depth = 1) {
   global $menu_admin;
+
   $p_depth = 'p' . (string)((int)$depth + 3);
   $sql = "
     SELECT m.load_functions, m.to_arg_functions, m.access_callback, m.access_arguments, m.page_callback, m.page_arguments, m.title, m.title_callback, m.title_arguments, m.type, m.description, ml.*
@@ -96,7 +97,8 @@ function bigmenu_slice_form($form, &$form_state, $menu, $menu_link, $depth = 2) 
   $form['#theme'] = 'bigmenu_overview_form';
   $form['#menu'] =  $menu;
   if (element_children($form)) {
-    $form['submit'] = array(
+    $form['actions'] = array('#type' => 'actions');
+    $form['actions']['submit'] = array(
       '#type' => 'submit',
       '#value' => t('Save configuration'),
     );
