@@ -39,7 +39,8 @@ function bigmenu_overview_form($form, &$form_state, $menu, $depth = 1) {
   menu_tree_check_access($tree, $node_links);
   $menu_admin = FALSE;
 
-  $new_form = _bigmenu_overview_tree_form($tree);
+  // If the user doesn't have the permission to use big menu, use core's form
+  $new_form = user_access('use bigmenu') ? _bigmenu_overview_tree_form($tree) : _menu_overview_tree_form($tree);
   $new_form['#menu'] =  $menu;
   if (element_children($new_form)) {
     $new_form['submit'] = array(
