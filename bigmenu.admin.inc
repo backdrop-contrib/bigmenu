@@ -24,9 +24,9 @@ function bigmenu_overview_form($form, &$form_state, $menu, $depth = 1) {
     SELECT m.load_functions, m.to_arg_functions, m.access_callback, m.access_arguments, m.page_callback, m.page_arguments, m.title, m.title_callback, m.title_arguments, m.type, m.description, ml.*
     FROM {menu_links} ml LEFT JOIN {menu_router} m ON m.path = ml.router_path
     WHERE ml.menu_name = :menu_name
-    AND :p_depth = 0
+    AND $p_depth = 0
     ORDER BY p1 ASC, p2 ASC, p3 ASC, p4 ASC, p5 ASC, p6 ASC, p7 ASC, p8 ASC, p9 ASC";
-  $result = db_query($sql, array(':menu_name' => $menu['menu_name'], ':p_depth' => $p_depth), array('fetch' => PDO::FETCH_ASSOC));
+  $result = db_query($sql, array(':menu_name' => $menu['menu_name']), array('fetch' => PDO::FETCH_ASSOC));
   $links = array();
   foreach ($result as $item) {
     $links[] = $item;
