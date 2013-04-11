@@ -41,6 +41,9 @@ function bigmenu_overview_form($form, &$form_state, $menu, $depth = 1) {
 
   // If the user doesn't have the permission to use big menu, use core's form
   $new_form = user_access('use bigmenu') ? _bigmenu_overview_tree_form($tree) : _menu_overview_tree_form($tree);
+  $cached_mlids = bigmenu_get_cached_mlids($form_state);
+  $new_form = array_merge($new_form, $cached_mlids);
+
   $new_form['#menu'] =  $menu;
   if (element_children($new_form)) {
     $new_form['submit'] = array(
@@ -53,6 +56,32 @@ function bigmenu_overview_form($form, &$form_state, $menu, $depth = 1) {
   }
 
   return $new_form;
+}
+
+/**
+ * Get the menu items that have already been expanded to merge in with the form during it's construction
+ * @param $form_state
+ * @return array - The previously cached mlids, including those from expanded parents
+ */
+function bigmenu_get_cached_mlids($form_state) {
+  $cached_mlids = array();
+  if (!empty($form_state) && !empty($form_state['rebuild_info']) && !empty($form_state['rebuild_info']['copy'])) {
+    $form_build_id = $form_state['rebuild_info']['copy']['#build_id'];
+    $cached_form = form_get_cache($form_build_id, $form_state);
+
+    if (!empty($cached_form)) {
+      // We have previously expanded one of the menu items so extract the items that were in the cached form
+      // so that we can add them to the form that is being built now.
+      foreach ($cached_form as $key => $value) {
+        $matches = array();
+        if (preg_match('/mlid:([0-9]*)/', $key, $matches)) {
+          $cached_mlids[$key] = $value;
+        }
+      }
+    }
+  }
+
+  return $cached_mlids;
 }
 
 /**
