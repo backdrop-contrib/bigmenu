@@ -91,6 +91,9 @@ Drupal.behaviors.bigmenu = {
                   $('#menu-overview').removeClass('tabledrag-processed');
                   $('#menu-overview .tabledrag-handle').remove();
 
+                  // Remove the weight toggle widget as it will be added in again with AJAX.
+                  $('.tabledrag-toggle-weight-wrapper').remove();
+
                   Drupal.attachBehaviors();
                   // Remove tabledrag warning, otherwise it will duplicate for each set of children we show.
                   Drupal.theme.tableDragChangedWarning = function () {
