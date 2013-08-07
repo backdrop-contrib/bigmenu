@@ -92,7 +92,6 @@ function bigmenu_get_cached_mlids($form_state) {
  * @return FAPI form.
  */
 function bigmenu_slice_form($form, &$form_state, $menu, $menu_link, $depth = 2) {
-  $menu_slice = menu_get_menus();
 
   // DB lookup the children of this item
   global $menu_admin;
@@ -163,7 +162,7 @@ function bigmenu_slice_form_js($menu, $menu_link, $form_id, $form_build_id) {
   $form_state['build_info']['args'] = $args;
   $form_state['values'] = array();
   $form_state['rebuild_info']['copy']['#build_id'] = $form_build_id;
-  $form = drupal_rebuild_form($form_id, $form_state, array('#build_id' => $form_build_id));
+  drupal_rebuild_form($form_id, $form_state, array('#build_id' => $form_build_id));
 
   exit;
 }
@@ -219,7 +218,6 @@ function bigmenu_settings($form, &$form_state) {
 function _bigmenu_overview_tree_form($tree, $depth = 0) {
   $form = &drupal_static(__FUNCTION__, array('#tree' => TRUE));
   foreach ($tree as $data) {
-    $title = '';
     $item = $data['link'];
     // Don't show callbacks; these have $item['hidden'] < 0.
     if ($item && $item['hidden'] >= 0) {
