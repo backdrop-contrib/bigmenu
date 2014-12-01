@@ -29,7 +29,7 @@ Drupal.behaviors.bigmenu = {
             $(parentRow)
               .removeClass('bigmenu-collapsed')
               .addClass('bigmenu-expanded');
-            $('.hide-show', parentRow).html('Hide children');
+            $('.hide-show', parentRow).html(Drupal.t('Hide children'));
 
             return false;
           }
@@ -104,7 +104,7 @@ Drupal.behaviors.bigmenu = {
                   $(parentRow)
                     .removeClass('bigmenu-collapsed')
                     .addClass('bigmenu-expanded');
-                  $('.hide-show', parentRow).html('Hide children');
+                  $('.hide-show', parentRow).html(Drupal.t('Hide children'));
                 }
                 else {
                   // Failure...
@@ -133,7 +133,7 @@ Drupal.behaviors.bigmenu = {
               .removeClass('bigmenu-expanded')
               .addClass('bigmenu-collapsed')
               .addClass('bigmenu-generated')
-            $('.hide-show', parentRow).html('Show children');
+            $('.hide-show', parentRow).html(Drupal.t('Show children'));
           }
 
           return false;
