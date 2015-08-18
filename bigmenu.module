@@ -39,21 +39,21 @@ function bigmenu_menu() {
     'type' => MENU_CALLBACK,
   );
   // Edit just a part of a menu. Arg 5 is the parent menu link id
-  $items['admin/structure/bigmenu-customize/%menu/subform/%menu_link'] = array(
+  $items['admin/structure/menu/manage/%menu/bigmenu-customize/subform/%menu_link'] = array(
     'title' => 'Edit a slice of a menu',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('bigmenu_slice_form', 3, 5),
+    'page arguments' => array('bigmenu_slice_form', 4, 7),
     'title callback' => 'bigmenu_parent_title',
-    'title arguments' => array(5),
+    'title arguments' => array(7),
     'access arguments' => array('use bigmenu'),
     'type' => MENU_CALLBACK,
     'file' => 'bigmenu.admin.inc',
   );
   // Same as above, but triggers an equivalent json response
   // This also expects arg 7,8 to be a form ID and form cache id
-  $items['admin/structure/bigmenu-customize/%menu/subform/%menu_link/js'] = array(
+  $items['admin/structure/menu/manage/%menu/bigmenu-customize/subform/%menu_link/js'] = array(
     'page callback' => 'bigmenu_slice_form_js',
-    'page arguments' => array(3, 5),
+    'page arguments' => array(4, 7),
     'access arguments' => array('use bigmenu'),
     'type' => MENU_CALLBACK,
     'file' => 'bigmenu.admin.inc',

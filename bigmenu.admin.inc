@@ -272,7 +272,7 @@ function _bigmenu_overview_tree_form($tree, $depth = 0) {
           '!tooltip' => t('Click to expand and show child items'),
         );
         $text = strtr('<span class="bigmenu-toggle">+</span> <span class="count" title="!tooltip"><span class="hide-show">!show_children</span> (%count)</span>', $strings);
-        $indicator = l($text, "admin/structure/bigmenu-customize/{$item['menu_name']}/subform/{$item['mlid']}", array('html' => TRUE, 'attributes' => array('class' => array('bigmenu-childindictor'))));
+        $indicator = l($text, "admin/structure/menu/manage/{$item['menu_name']}/bigmenu-customize/subform/{$item['mlid']}", array('html' => TRUE, 'attributes' => array('class' => array('bigmenu-childindictor'))));
         $form[$mlid]['title']['#markup'] .= '<br/>' . $indicator;
         $form[$mlid]['#attributes']['class'][] = 'bigmenu-collapsed';
 
