@@ -27,3 +27,12 @@ function bigmenu_enable() {
 function bigmenu_update_7001() {
   menu_rebuild();
 }
+
+/**
+ * Rebuild menus to remove admin/structure/bigmenu-customize/%menu
+ *
+ * This menu link is not used.
+ */
+function bigmenu_update_7002() {
+  menu_rebuild();
+}

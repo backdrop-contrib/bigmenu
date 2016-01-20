@@ -29,15 +29,6 @@
  * hook_menu()
  */
 function bigmenu_menu() {
-  $items['admin/structure/bigmenu-customize/%menu'] = array(
-    'title' => 'Customize menu',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('bigmmenu_overview_form', 3),
-    'title callback' => 'menu_overview_title',
-    'title arguments' => array(3),
-    'access arguments' => array('use bigmenu'),
-    'type' => MENU_CALLBACK,
-  );
   // Edit just a part of a menu. Arg 5 is the parent menu link id
   $items['admin/structure/menu/manage/%menu/bigmenu-customize/subform/%menu_link'] = array(
     'title' => 'Edit a slice of a menu',
