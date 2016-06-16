@@ -3,10 +3,11 @@
  * @file
  * Administrative page callbacks for bigmenu module.
  *
- * Large amounts copied from menu.admin.inc
+ * Large amounts copied from menu.admin.inc.
  *
  * @author Dan (dman) Morrison dan@coders.co.nz
  * @author Adam (acbramley) Bramley adam@catalyst.net.nz
+ *
  * @version 2012
  */
 
@@ -132,7 +133,6 @@ function bigmenu_slice_form($form, &$form_state, $menu, $menu_link, $depth = 2) 
     $tree[$ix]['link'] = array();
   }
   // (there was only one, but I didn't know its name).
-
   $form = _bigmenu_overview_tree_form($tree, $depth);
 
   $form['#theme'] = 'bigmenu_overview_form';
@@ -219,7 +219,6 @@ function bigmenu_settings($form, &$form_state) {
   );
   return system_settings_form($form);
 }
-
 
 /**
  * Recursive helper function for menu_overview_form().
