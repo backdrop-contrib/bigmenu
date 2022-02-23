@@ -51,7 +51,15 @@
 
             // ALSO, to deal with Drupal form API form cache, add the form build ID
             // so the background process can update the known fields.
-            var form = $('.menu-mlid', parentRow).attr('form')
+            // When using jQuery 1.7+, use prop() function instead of the attr()
+            // function when not called on an attribute.
+            if ($().prop) {
+              var form = $('.menu-mlid', parentRow).prop('form');
+            }
+            else {
+              var form = $('.menu-mlid', parentRow).attr('form');
+            }
+
             form_id = $('input[name="form_id"]', form).val();
             form_build_id = $('input[name="form_build_id"]', form).val();
             url += "/" + form_id + "/" + form_build_id
