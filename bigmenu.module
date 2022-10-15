@@ -25,11 +25,18 @@
  */
 
 /**
- * Declare admin links and AJAX callbacks.
- *
- * hook_menu()
+ * Implements hook_menu().
  */
 function bigmenu_menu() {
+  $items['admin/config/user-interface/bigmenu'] = array(
+    'title' => 'Big Menu settings',
+    'page callback' => 'backdrop_get_form',
+    'page arguments' => array('bigmenu_settings'),
+    'description' => 'Configure settings for bigmenu module.',
+    'access arguments' => array('administer bigmenu'),
+    'file' => 'bigmenu.admin.inc',
+  );
+
   // Edit just a part of a menu. Arg 5 is the parent menu link id.
   $items['admin/structure/menu/manage/%menu/bigmenu-customize/subform/%menu_link'] = array(
     'title' => 'Edit a slice of a menu',
@@ -38,8 +45,8 @@ function bigmenu_menu() {
     'title callback' => 'bigmenu_parent_title',
     'title arguments' => array(7),
     'access arguments' => array('use bigmenu'),
-    'type' => MENU_CALLBACK,
     'file' => 'bigmenu.admin.inc',
+    'type' => MENU_CALLBACK,
   );
   // Same as above, but triggers an equivalent json response.
   // This also expects arg 7,8 to be a form ID and form cache id.
@@ -47,46 +54,10 @@ function bigmenu_menu() {
     'page callback' => 'bigmenu_slice_form_js',
     'page arguments' => array(4, 7),
     'access arguments' => array('use bigmenu'),
+    'file' => 'bigmenu.admin.inc',
     'type' => MENU_CALLBACK,
-    'file' => 'bigmenu.admin.inc',
   );
-  $items['admin/config/user-interface/bigmenu'] = array(
-    'title' => 'Big Menu Settings',
-    'page callback' => 'backdrop_get_form',
-    'page arguments' => array('bigmenu_settings'),
-    'description' => 'Configure settings for bigmenu module.',
-    'access arguments' => array('administer bigmenu'),
-    'type' => MENU_NORMAL_ITEM,
-    'file' => 'bigmenu.admin.inc',
-  );
-
   return $items;
-}
-
-/**
- * Take over core menu admin page.
- *
- * hook_menu_alter()
- *
- * @TODO - should be an admin toggle for this setting.
- */
-function bigmenu_menu_alter(&$items) {
-  $items['admin/structure/menu/manage/%menu']['page arguments'] = array('bigmenu_overview_form', 4);
-  $items['admin/structure/menu/manage/%menu']['file'] = 'bigmenu.admin.inc';
-  $items['admin/structure/menu/manage/%menu']['file path'] = backdrop_get_path('module', 'bigmenu');
-}
-
-/**
- * Implements hook_theme().
- */
-function bigmenu_theme() {
-  return array(
-    'bigmenu_overview_form' => array(
-      'file' => 'bigmenu.admin.inc',
-      'arguments' => array('form' => NULL),
-      'render element' => 'form',
-    ),
-  );
 }
 
 /**
@@ -103,4 +74,29 @@ function bigmenu_permission() {
       'description' => t('Allows the use of Big Menu'),
     ),
   );
+}
+
+/**
+ * Implements hook_theme().
+ */
+function bigmenu_theme() {
+  return array(
+    'bigmenu_overview_form' => array(
+      'file' => 'bigmenu.admin.inc',
+      'arguments' => array('form' => NULL),
+      'render element' => 'form',
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu_alter().
+ * This takes over core menu admin page.
+ *
+ * @TODO - should be an admin toggle for this setting.
+ */
+function bigmenu_menu_alter(&$items) {
+  $items['admin/structure/menu/manage/%menu']['page arguments'] = array('bigmenu_overview_form', 4);
+  $items['admin/structure/menu/manage/%menu']['file'] = 'bigmenu.admin.inc';
+  $items['admin/structure/menu/manage/%menu']['file path'] = backdrop_get_path('module', 'bigmenu');
 }

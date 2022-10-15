@@ -16,12 +16,6 @@ function bigmenu_enable() {
     ->execute();
 }
 
-// TODO The old hook_update_N functions cannot be applied to Backdrop.
-function bigmenu_update_7001() { }
-
-// TODO The old hook_update_N functions cannot be applied to Backdrop.
-function bigmenu_update_7002() { }
-
 /**
  * Implements hook_update_last_removed().
  */

@@ -1,4 +1,4 @@
 name = Big Menu
-description = Scalable replacement for core menu management screen. Uses AJAX to replace the global menu management page, suitable for thousands of items
+description = Scalable replacement for core menu management screen for large hierarchical menus.
 backdrop = 1.x
 type = module

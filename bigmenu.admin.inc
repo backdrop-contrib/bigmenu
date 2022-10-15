@@ -7,6 +7,7 @@
  *
  * @author Dan (dman) Morrison dan@coders.co.nz
  * @author Adam (acbramley) Bramley adam@catalyst.net.nz
+ * @author Robert J. Lang (bugfolder) http://github.com/bugfolder
  *
  * @version 2012
  */
@@ -183,14 +184,14 @@ function bigmenu_slice_form_js($menu, $menu_link, $form_id, $form_build_id) {
 /**
  * Theme the menu overview form into a table.
  *
- * A stub to core. No need to change anything. It just adds an extra js file and
- * passes it through.
+ * A stub to core. No need to change anything. It just adds extra js and css
+ * files and passes it through.
  *
  * @ingroup themeable
  */
 function theme_bigmenu_overview_form($form) {
-  backdrop_add_js(backdrop_get_path('module', 'bigmenu') . '/bigmenu.js');
-  backdrop_add_css(backdrop_get_path('module', 'bigmenu') . '/bigmenu.css');
+  backdrop_add_js(backdrop_get_path('module', 'bigmenu') . '/js/bigmenu.js');
+  backdrop_add_css(backdrop_get_path('module', 'bigmenu') . '/css/bigmenu.css');
   return theme('menu_overview_form', $form);
 }
 
@@ -208,11 +209,10 @@ function bigmenu_settings($form, &$form_state) {
   $form['#config'] = 'bigmenu.settings';
   $form['bigmenu_settings'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Settings'),
   );
   $form['bigmenu_settings']['bigmenu_depth'] = array(
     '#type' => 'select',
-    '#title' => t('Big Menu Depth'),
+    '#title' => t('Depth'),
     '#description' => t('This setting controls how many levels are generated at a time when showing children of a menu item.'),
     '#required' => TRUE,
     '#default_value' => config_get('bigmenu.settings', 'bigmenu_depth'),

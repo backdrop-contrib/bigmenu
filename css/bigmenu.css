@@ -12,14 +12,14 @@
   overflow: hidden;
 }
 .bigmenu-collapsed .bigmenu-toggle {
-  background: url(menu-collapsed.gif) no-repeat 0 center;
+  background: url(../images/menu-collapsed.png) no-repeat 0 center;
 }
 .bigmenu-expanded .bigmenu-toggle {
-  background: url(menu-expanded.gif) no-repeat 0 center;
+  background: url(../images/menu-expanded.png) no-repeat 0 center;
 }
 /* This is slightly more specific, as it overrides the other two if it's on. */
 .bigmenu-processing .bigmenu-childindictor .bigmenu-toggle {
-  background: url(menu-processing.gif) no-repeat 0 center;
+  background: url(../images/menu-processing.png) no-repeat 0 center;
 }
 
 div.indentation {
