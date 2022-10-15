@@ -17,11 +17,6 @@ Installation
 
 - Any additional steps.
 
-Differences from Drupal 7
--------------------------
-
-TBD
-
 Issues
 ------
 
