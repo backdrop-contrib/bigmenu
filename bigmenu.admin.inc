@@ -43,7 +43,7 @@ function bigmenu_overview_form($form, &$form_state, $menu, $depth = 1) {
   $menu_admin = FALSE;
 
   // If the user doesn't have the permission to use big menu, use core's form.
-  $new_form = user_access('use bigmenu') ? _bigmenu_overview_tree_form($tree) : _menu_overview_tree_form($tree);
+  $new_form = user_access('use bigmenu')?_bigmenu_overview_tree_form($tree) : _menu_overview_tree_form($tree);
   $cached_mlids = bigmenu_get_cached_mlids($form_state);
   $new_form = array_merge($new_form, $cached_mlids);
 
@@ -155,18 +155,18 @@ function bigmenu_slice_form($form, &$form_state, $menu, $menu_link, $depth = 2) 
  *
  * Menu callback, invoked by AJAX.
  *
- * Drupals form cache would not allow me to insert arbitrary fields into a form
+ * Backdrops form cache would not allow me to insert arbitrary fields into a form
  * without letting the server know about it.
  */
 function bigmenu_slice_form_js($menu, $menu_link, $form_id, $form_build_id) {
-  $depth = variable_get('bigmenu_depth', 1);
+  $depth = config_get('bigmenu.settings', 'bigmenu_depth');
 
   $form_state = form_state_defaults();
-  $old_form = drupal_get_form('bigmenu_slice_form', $menu, $menu_link, $depth);
-  $output = drupal_render($old_form);
+  $old_form = backdrop_get_form('bigmenu_slice_form', $menu, $menu_link, $depth);
+  $output = backdrop_render($old_form);
 
   // This returns data to the browser immediately.
-  drupal_json_output(array('status' => TRUE, 'data' => $output));
+  backdrop_json_output(array('status' => TRUE, 'data' => $output));
 
   // After that we will do the slower job of updating the form cache.
   // Reload the bigmenu_overview_form,
@@ -175,7 +175,7 @@ function bigmenu_slice_form_js($menu, $menu_link, $form_id, $form_build_id) {
   $form_state['build_info']['args'] = $args;
   $form_state['values'] = array();
   $form_state['rebuild_info']['copy']['#build_id'] = $form_build_id;
-  drupal_rebuild_form($form_id, $form_state, array('#build_id' => $form_build_id));
+  backdrop_rebuild_form($form_id, $form_state, array('#build_id' => $form_build_id));
 
   exit;
 }
@@ -189,8 +189,8 @@ function bigmenu_slice_form_js($menu, $menu_link, $form_id, $form_build_id) {
  * @ingroup themeable
  */
 function theme_bigmenu_overview_form($form) {
-  drupal_add_js(drupal_get_path('module', 'bigmenu') . '/bigmenu.js');
-  drupal_add_css(drupal_get_path('module', 'bigmenu') . '/bigmenu.css');
+  backdrop_add_js(backdrop_get_path('module', 'bigmenu') . '/bigmenu.js');
+  backdrop_add_css(backdrop_get_path('module', 'bigmenu') . '/bigmenu.css');
   return theme('menu_overview_form', $form);
 }
 
@@ -205,6 +205,7 @@ function bigmenu_overview_form_submit($form, &$form_state) {
  * Admin settings form.
  */
 function bigmenu_settings($form, &$form_state) {
+  $form['#config'] = 'bigmenu.settings';
   $form['bigmenu_settings'] = array(
     '#type' => 'fieldset',
     '#title' => t('Settings'),
@@ -214,8 +215,12 @@ function bigmenu_settings($form, &$form_state) {
     '#title' => t('Big Menu Depth'),
     '#description' => t('This setting controls how many levels are generated at a time when showing children of a menu item.'),
     '#required' => TRUE,
-    '#default_value' => variable_get('bigmenu_depth', 1),
-    '#options' => array(1 => '1', 2 => '2', 3 => '3'),
+    '#default_value' => config_get('bigmenu.settings', 'bigmenu_depth'),
+    '#options' => array(
+      1 => '1',
+      2 => '2',
+      3 => '3',
+    ),
   );
   return system_settings_form($form);
 }
@@ -228,14 +233,14 @@ function bigmenu_settings($form, &$form_state) {
  * @see _menu_overview_tree_form()
  */
 function _bigmenu_overview_tree_form($tree, $depth = 0) {
-  $form = &drupal_static(__FUNCTION__, array('#tree' => TRUE));
+  $form = &backdrop_static(__FUNCTION__, array('#tree' => TRUE));
   foreach ($tree as $data) {
     $item = $data['link'];
     // Don't show callbacks; these have $item['hidden'] < 0.
     if ($item && $item['hidden'] >= 0) {
       $mlid = 'mlid:' . $item['mlid'];
       $form[$mlid]['#item'] = $item;
-      $form[$mlid]['#attributes'] = $item['hidden'] ? array('class' => array('menu-disabled')) : array('class' => array('menu-enabled'));
+      $form[$mlid]['#attributes'] = $item['hidden']?array('class' => array('menu-disabled')) : array('class' => array('menu-enabled'));
       $form[$mlid]['title']['#markup'] = l($item['title'], $item['href'], $item['localized_options']) . ($item['hidden'] ? ' (' . t('disabled') . ')' : '');
       $form[$mlid]['hidden'] = array(
         '#type' => 'checkbox',

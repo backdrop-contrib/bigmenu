@@ -16,25 +16,33 @@ function bigmenu_enable() {
     ->execute();
 }
 
+// TODO The old hook_update_N functions cannot be applied to Backdrop.
+function bigmenu_update_7001() { }
+
+// TODO The old hook_update_N functions cannot be applied to Backdrop.
+function bigmenu_update_7002() { }
+
 /**
- * Rebuild menus.
- *
- * So menu link:
- *   admin/structure/bigmenu-customize/%menu/subform/%menu_link
- * becomes:
- *   admin/structure/menu/manage/%menu/bigmenu-customize/subform/%menu_link.
- *
- * This fixes menu links not editable when bigmenu is used with i18n_menu.
+ * Implements hook_update_last_removed().
  */
-function bigmenu_update_7001() {
-  menu_rebuild();
+function bigmenu_update_last_removed() {
+  return 7002;
 }
 
 /**
- * Rebuild menus to remove admin/structure/bigmenu-customize/%menu.
- *
- * This menu link is not used.
+ * Migrate bigmenu variables to config.
  */
-function bigmenu_update_7002() {
-  menu_rebuild();
+function bigmenu_update_1000() {
+  $config = config('bigmenu.settings');
+  $config->set('bigmenu_depth', update_variable_get('bigmenu_depth', '1'));
+  $config->save();
+
+  update_variable_del('bigmenu_depth');
+}
+
+/**
+ * Implements hook_install().
+ */
+function bigmenu_install() {
+  // Dynamically generated variable data was detected.
 }

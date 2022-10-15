@@ -6,7 +6,7 @@
 
 (function ($) {
 
-  Drupal.behaviors.bigmenu = {
+  Backdrop.behaviors.bigmenu = {
     attach: function(context) {
       // Add click actions to all the child indicators
       // The bigmenu-processed class will mark that we don't want to attach this behavior twice.
@@ -30,7 +30,7 @@
             $(parentRow)
               .removeClass('bigmenu-collapsed')
               .addClass('bigmenu-expanded');
-            $('.hide-show', parentRow).html(Drupal.t('Hide children'));
+            $('.hide-show', parentRow).html(Backdrop.t('Hide children'));
 
             return false;
           }
@@ -49,7 +49,7 @@
             // just add 'js' to the end.
             var url = $(this).attr('href') + '/js';
 
-            // ALSO, to deal with Drupal form API form cache, add the form build ID
+            // ALSO, to deal with Backdrop form API form cache, add the form build ID
             // so the background process can update the known fields.
             // When using jQuery 1.7+, use prop() function instead of the attr()
             // function when not called on an attribute.
@@ -101,9 +101,9 @@
                   // Remove the weight toggle widget as it will be added in again with AJAX.
                   $('.tabledrag-toggle-weight-wrapper').remove();
 
-                  Drupal.attachBehaviors();
+                  Backdrop.attachBehaviors();
                   // Remove tabledrag warning, otherwise it will duplicate for each set of children we show.
-                  Drupal.theme.tableDragChangedWarning = function () {
+                  Backdrop.theme.tableDragChangedWarning = function () {
                     return '';
                   };
 
@@ -111,11 +111,11 @@
                   $(parentRow)
                     .removeClass('bigmenu-collapsed')
                     .addClass('bigmenu-expanded');
-                  $('.hide-show', parentRow).html(Drupal.t('Hide children'));
+                  $('.hide-show', parentRow).html(Backdrop.t('Hide children'));
                 }
                 else {
                   // Failure...
-                  alert(Drupal.t('AJAX error fetching submenu.'));
+                  alert(Backdrop.t('AJAX error fetching submenu.'));
                   // $('.bigmenu-childindictor', $(parentRow)).remove();
                 }
 
@@ -125,7 +125,7 @@
               },
               error: function(XMLHttpRequest, textStatus, errorThrown) {
                 // Failure...
-                alert(Drupal.t('Error fetching submenu: @error', { '@error': textStatus }));
+                alert(Backdrop.t('Error fetching submenu: @error', { '@error': textStatus }));
               }
             });
           }
@@ -140,7 +140,7 @@
               .removeClass('bigmenu-expanded')
               .addClass('bigmenu-collapsed')
               .addClass('bigmenu-generated')
-            $('.hide-show', parentRow).html(Drupal.t('Show children'));
+            $('.hide-show', parentRow).html(Backdrop.t('Show children'));
           }
 
           return false;
