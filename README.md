@@ -13,9 +13,7 @@ Installation
 - Install this module using [the official Backdrop CMS instructions](https://backdropcms.org/guide/modules).
 
 - Visit the configuration page under Administration > Configuration > User Interface >
-  Big Menu (admin/config/user-interface/bigmenu) and enter the required information.
-
-- Any additional steps.
+  Big Menu (admin/config/user-interface/bigmenu) and select the number of levels to be generated when showing children of a menu item.
 
 Issues
 ------
