@@ -264,29 +264,29 @@ function _bigmenu_overview_tree_form($tree, $depth = 0) {
         '#default_value' => $item['plid'],
       );
       // Build a list of operations.
-      $operations = array();
-      $operations['edit'] = array(
-        '#type' => 'link',
-        '#title' => t('edit'),
-        '#href' => 'admin/structure/menu/item/' . $item['mlid'] . '/edit',
+      $links = array();
+      $links['edit'] = array(
+        'title' => t('Edit'),
+        'href' => 'admin/structure/menu/item/' . $item['mlid'] . '/edit',
       );
       // Only items created by the menu module can be deleted.
       if ($item['module'] == 'menu' || $item['updated'] == 1) {
-        $operations['delete'] = array(
-          '#type' => 'link',
-          '#title' => t('delete'),
-          '#href' => 'admin/structure/menu/item/' . $item['mlid'] . '/delete',
+        $links['delete'] = array(
+          'title' => t('Delete'),
+          'href' => 'admin/structure/menu/item/' . $item['mlid'] . '/delete',
         );
       }
       // Set the reset column.
       elseif ($item['module'] == 'system' && $item['customized']) {
-        $operations['reset'] = array(
-          '#type' => 'link',
-          '#title' => t('reset'),
-          '#href' => 'admin/structure/menu/item/' . $item['mlid'] . '/reset',
+        $links['reset'] = array(
+          'title' => t('Reset'),
+          'href' => 'admin/structure/menu/item/' . $item['mlid'] . '/reset',
         );
       }
-      $form[$mlid]['operations'] = $operations;
+      $form[$mlid]['operations'] = array(
+        '#type' => 'operations',
+        '#links' => $links,
+      );
     }
 
     if ($data['below']) {
