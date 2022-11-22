@@ -2,3 +2,5 @@ name = Big Menu
 description = Scalable replacement for core menu management screen for large hierarchical menus.
 backdrop = 1.x
 type = module
+
+configure = admin/config/user-interface/bigmenu
