@@ -100,3 +100,14 @@ function bigmenu_menu_alter(&$items) {
   $items['admin/structure/menu/manage/%menu']['file'] = 'bigmenu.admin.inc';
   $items['admin/structure/menu/manage/%menu']['file path'] = backdrop_get_path('module', 'bigmenu');
 }
+
+/**
+ * Implements hook_config_info().
+ */
+function bigmenu_config_info() {
+  $prefixes['bigmenu.settings'] = array(
+    'label' => t('Big Menu settings'),
+    'group' => t('Configuration'),
+  );
+  return $prefixes;
+}
